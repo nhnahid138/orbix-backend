@@ -14,6 +14,7 @@ import { AuthService } from './auth.service.js';
 import { ChangePasswordDto, LoginDto, RegisterDto } from './auth.dto.js';
 import { CurrentUser, Public } from '../common/security.decorators.js';
 import type { AuthenticatedUser } from '../common/security.decorators.js';
+import { trustedOrigins } from '../config/trusted-origins.js';
 
 const REFRESH_COOKIE = 'orbix_refresh';
 
@@ -148,11 +149,9 @@ export class AuthController {
   private assertTrustedOrigin(request: Request): void {
     const origin = request.headers.origin;
     if (!origin) return;
-    const trusted = this.config
-      .getOrThrow<string>('CORS_ORIGINS')
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean);
+    const trusted = trustedOrigins(
+      this.config.getOrThrow<string>('CORS_ORIGINS'),
+    );
     if (!trusted.includes(origin))
       throw new ForbiddenException('Origin is not allowed');
   }

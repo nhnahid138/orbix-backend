@@ -7,6 +7,7 @@ import { mkdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
+import { trustedOrigins } from './config/trusted-origins.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -29,11 +30,7 @@ async function bootstrap() {
   app.use(helmet());
   app.setGlobalPrefix('api/v1');
   app.enableCors({
-    origin: config
-      .getOrThrow<string>('CORS_ORIGINS')
-      .split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean),
+    origin: trustedOrigins(config.getOrThrow<string>('CORS_ORIGINS')),
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
